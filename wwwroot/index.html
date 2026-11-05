@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI-Assisted Sales Operations Dashboard</title>
+    <base href="/" />
+    
+    <!-- Syncfusion Blazor CSS -->
+    <link href="_content/Syncfusion.Blazor.Themes/bootstrap5.css" rel="stylesheet" />
+    <link href="_content/Syncfusion.Blazor/syncfusion-blazor.css" rel="stylesheet" />
+    
+    <!-- Application CSS -->
+    <link href="css/app.css" rel="stylesheet" />
+    <link href="AIAssistantSalesOperationsDashboard.styles.css" rel="stylesheet" />
+    
+    <!-- Font Awesome for icons (optional) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+</head>
+
+<body>
+    <!-- Root App Component -->
+    <div id="app">
+        <div style="display: flex; align-items: center; justify-content: center; height: 100vh; background: linear-gradient(135deg, #1f4e78 0%, #2d6a8f 100%);">
+            <div style="text-align: center; color: white;">
+                <h2>⏳ Loading Dashboard...</h2>
+                <p>Please wait while we initialize the application.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Fallback -->
+    <div id="blazor-error-ui">
+        <environment include="Staging,Production">
+            <p>An error has occurred. This application may no longer respond until reloaded.</p>
+        </environment>
+        <environment include="Development">
+            <p>An unhandled exception has occurred. See browser console for details.</p>
+        </environment>
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+
+    <!-- Syncfusion Blazor Script -->
+    <script src="_content/Syncfusion.Blazor/syncfusion-blazor.min.js"></script>
+
+    <!-- Blazor WebAssembly Bootstrap Script -->
+    <script src="_framework/blazor.webassembly.js"></script>
+
+    <!-- Error Handler Script -->
+    <script>
+        window.addEventListener('beforeunload', event => {
+            localStorage.setItem('app_unloaded', 'true');
+        });
+
+        document.querySelector("a.dismiss").addEventListener("click", function (e) {
+            this.closest("#blazor-error-ui").style.display = "none";
+        });
+
+        if (!window.location.origin.includes("localhost") && !window.location.origin.includes("127.0.0.1")) {
+            console.log("Production environment detected");
+        }
+    </script>
+</body>
+
+</html>
