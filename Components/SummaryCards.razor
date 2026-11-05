@@ -1,0 +1,130 @@
+@using AIAssistantSalesOperationsDashboard.Models
+
+<div class="summary-cards-container">
+    <div class="summary-card card-orders">
+        <div class="card-icon">📦</div>
+        <div class="card-content">
+            <h3>Total Orders</h3>
+            <p class="card-value">@(OrderSummary.ContainsKey("TotalOrders") ? OrderSummary["TotalOrders"] : 0)</p>
+        </div>
+    </div>
+
+    <div class="summary-card card-delayed">
+        <div class="card-icon">⚠️</div>
+        <div class="card-content">
+            <h3>Delayed Orders</h3>
+            <p class="card-value">@(OrderSummary.ContainsKey("DelayedOrders") ? OrderSummary["DelayedOrders"] : 0)</p>
+        </div>
+    </div>
+
+    <div class="summary-card card-revenue">
+        <div class="card-icon">💰</div>
+        <div class="card-content">
+            <h3>Total Order Value</h3>
+            <p class="card-value">
+                @if (OrderSummary.ContainsKey("TotalOrderValue"))
+                {
+                    <span>@((decimal)OrderSummary["TotalOrderValue"]:C0)</span>
+                }
+                else
+                {
+                    <span>$0</span>
+                }
+            </p>
+        </div>
+    </div>
+
+    <div class="summary-card card-average">
+        <div class="card-icon">📊</div>
+        <div class="card-content">
+            <h3>Average Order Value</h3>
+            <p class="card-value">
+                @if (OrderSummary.ContainsKey("AverageOrderValue"))
+                {
+                    <span>@((decimal)OrderSummary["AverageOrderValue"]:C0)</span>
+                }
+                else
+                {
+                    <span>$0</span>
+                }
+            </p>
+        </div>
+    </div>
+
+    <div class="summary-card card-completed">
+        <div class="card-icon">✅</div>
+        <div class="card-content">
+            <h3>Completed</h3>
+            <p class="card-value">@(OrderSummary.ContainsKey("CompletedOrders") ? OrderSummary["CompletedOrders"] : 0)</p>
+        </div>
+    </div>
+
+    <div class="summary-card card-progress">
+        <div class="card-icon">🔄</div>
+        <div class="card-content">
+            <h3>In Progress</h3>
+            <p class="card-value">@(OrderSummary.ContainsKey("InProgressOrders") ? OrderSummary["InProgressOrders"] : 0)</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .summary-cards-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .summary-card {
+        background: white;
+        border-radius: 8px;
+        padding: 15px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .summary-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-icon {
+        font-size: 32px;
+        min-width: 40px;
+    }
+
+    .card-content {
+        flex: 1;
+    }
+
+    .card-content h3 {
+        margin: 0;
+        font-size: 12px;
+        color: #666;
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+
+    .card-value {
+        margin: 5px 0 0;
+        font-size: 20px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .card-orders { border-left: 4px solid #007bff; }
+    .card-delayed { border-left: 4px solid #dc3545; }
+    .card-revenue { border-left: 4px solid #28a745; }
+    .card-average { border-left: 4px solid #ffc107; }
+    .card-completed { border-left: 4px solid #20c997; }
+    .card-progress { border-left: 4px solid #6f42c1; }
+</style>
+
+@code {
+    [Parameter]
+    public Dictionary<string, object> OrderSummary { get; set; } = new();
+}

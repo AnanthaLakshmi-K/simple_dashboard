@@ -1,0 +1,193 @@
+@using AIAssistantSalesOperationsDashboard.Models
+@using AIAssistantSalesOperationsDashboard.Services
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Popups
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Calendars
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Inputs
+@inject IOrderDataService OrderDataService
+
+<SfGrid TValue="OrderRecord" 
+        DataSource="@Orders" 
+        AllowPaging="true" 
+        AllowSorting="true" 
+        AllowFiltering="true"
+        AllowSelection="true"
+        AllowExcelExport="true"
+        AllowMultiSorting="true"
+        PageSettings="@PageSettings"
+        GridLines="@GridLines.Both"
+        @ref="GridRef">
+
+    <GridEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true" Mode="@EditMode.Dialog" />
+
+    <GridColumns>
+        <GridColumn Field="@nameof(OrderRecord.OrderID)" HeaderText="Order ID" Width="100" AllowSorting="true" IsPrimaryKey="true" />
+        
+        <GridColumn Field="@nameof(OrderRecord.Customer)" HeaderText="Customer" Width="140" />
+        
+        <GridColumn Field="@nameof(OrderRecord.Region)" HeaderText="Region" Width="120">
+            <EditTemplate Context="context">
+                <SfDropDownList TValue="string" TItem="string" DataSource="@Regions" @bind-Value="((OrderRecord)context).Region" />
+            </EditTemplate>
+        </GridColumn>
+        
+        <GridColumn Field="@nameof(OrderRecord.Status)" HeaderText="Status" Width="110">
+            <EditTemplate Context="context">
+                <SfDropDownList TValue="string" TItem="string" DataSource="@Statuses" @bind-Value="((OrderRecord)context).Status" />
+            </EditTemplate>
+        </GridColumn>
+        
+        <GridColumn Field="@nameof(OrderRecord.OrderDate)" HeaderText="Order Date" Type="ColumnType.Date" Format="yMd" Width="120">
+            <EditTemplate Context="context">
+                <SfDatePicker TValue="DateTime" @bind-Value="((OrderRecord)context).OrderDate" />
+            </EditTemplate>
+        </GridColumn>
+        
+        <GridColumn Field="@nameof(OrderRecord.DeliveryDate)" HeaderText="Delivery Date" Type="ColumnType.Date" Format="yMd" Width="130">
+            <EditTemplate Context="context">
+                <SfDatePicker TValue="DateTime" @bind-Value="((OrderRecord)context).DeliveryDate" />
+            </EditTemplate>
+        </GridColumn>
+        
+        <GridColumn Field="@nameof(OrderRecord.SalesRepresentative)" HeaderText="Sales Rep" Width="130" />
+        
+        <GridColumn Field="@nameof(OrderRecord.OrderValue)" HeaderText="Order Value" Type="ColumnType.Number" Format="C2" Width="120" TextAlign="@TextAlign.Right" />
+        
+        <GridColumn Field="@nameof(OrderRecord.ForecastValue)" HeaderText="Forecast Value" Type="ColumnType.Number" Format="C2" Width="130" TextAlign="@TextAlign.Right">
+            <EditTemplate Context="context">
+                <SfNumericTextBox TValue="decimal?" @bind-Value="((OrderRecord)context).ForecastValue" Min="0.01" Step="100" Format="C2" />
+            </EditTemplate>
+        </GridColumn>
+    </GridColumns>
+
+    <GridEvents TValue="OrderRecord" 
+                OnActionFailure="@OnActionFailure"
+                OnActionComplete="@OnActionCompleteAsync" />
+</SfGrid>
+
+@if (ShowConfirmation)
+{
+    <SfDialog @ref="ConfirmationDialog" 
+              Width="400px" 
+              Height="auto" 
+              IsModal="true" 
+              ShowCloseIcon="true"
+              AllowDragging="false">
+        <DialogTemplates>
+            <DialogContent>
+                <div class="confirmation-content">
+                    <h4>⚠️ Confirm Update</h4>
+                    <p>@ConfirmationMessage</p>
+                </div>
+            </DialogContent>
+            <DialogButtons>
+                <DialogButton Content="Proceed" OnClick="@ConfirmUpdateAsync" />
+                <DialogButton Content="Cancel" OnClick="@CancelUpdateAsync" />
+            </DialogButtons>
+        </DialogTemplates>
+    </SfDialog>
+}
+
+@code {
+    [Parameter]
+    public List<OrderRecord> Orders { get; set; } = new();
+
+    [Parameter]
+    public EventCallback OnDataChanged { get; set; }
+
+    public SfGrid<OrderRecord>? GridRef { get; set; }
+    private SfDialog? ConfirmationDialog;
+    private bool ShowConfirmation = false;
+    private string ConfirmationMessage = string.Empty;
+    private OrderRecord? PendingOrder = null;
+
+    private PageSettings PageSettings = new() { PageSize = 10 };
+    private List<string> Regions = new() { "North America", "Europe", "Asia-Pacific", "Africa", "South America" };
+    private List<string> Statuses = new() { "New", "In Progress", "Delayed", "Completed" };
+
+    private async Task OnActionCompleteAsync(ActionEventArgs<OrderRecord> args)
+    {
+        if (args.RequestType == Syncfusion.Blazor.Grids.Action.Save)
+        {
+            try
+            {
+                if (args.Data == null)
+                    return;
+
+                var order = args.Data;
+
+                // Validate Forecast Value
+                if (order.ForecastValue <= 0)
+                {
+                    args.Cancel = true;
+                    await ShowAlert("Error", "Forecast Value must be greater than zero.", "error");
+                    return;
+                }
+
+                // Show confirmation for Forecast Value changes
+                if (args.RequestType == Syncfusion.Blazor.Grids.Action.Save)
+                {
+                    PendingOrder = order;
+                    ConfirmationMessage = $"Update order {order.OrderID} for {order.Customer}?\nForecast Value: ${order.ForecastValue:N2}";
+                    ShowConfirmation = true;
+                    args.Cancel = true;
+                    
+                    if (ConfirmationDialog != null)
+                        await ConfirmationDialog.Show();
+                    return;
+                }
+
+                await OrderDataService.UpdateOrderAsync(order);
+                await OnDataChanged.InvokeAsync();
+            }
+            catch (Exception ex)
+            {
+                await ShowAlert("Error", ex.Message, "error");
+            }
+        }
+    }
+
+    private async Task ConfirmUpdateAsync()
+    {
+        if (PendingOrder != null)
+        {
+            try
+            {
+                await OrderDataService.UpdateOrderAsync(PendingOrder);
+                ShowConfirmation = false;
+                PendingOrder = null;
+                await OnDataChanged.InvokeAsync();
+                
+                if (ConfirmationDialog != null)
+                    await ConfirmationDialog.Hide();
+            }
+            catch (Exception ex)
+            {
+                await ShowAlert("Error", ex.Message, "error");
+            }
+        }
+    }
+
+    private async Task CancelUpdateAsync()
+    {
+        ShowConfirmation = false;
+        PendingOrder = null;
+        
+        if (ConfirmationDialog != null)
+            await ConfirmationDialog.Hide();
+    }
+
+    private async Task OnActionFailure(FailedEventArgs args)
+    {
+        await ShowAlert("Error", args.Error ?? "An error occurred", "error");
+    }
+
+    private async Task ShowAlert(string title, string message, string type)
+    {
+        // In a full implementation, would use SfToast or similar
+        Console.WriteLine($"{title}: {message}");
+        await Task.CompletedTask;
+    }
+}

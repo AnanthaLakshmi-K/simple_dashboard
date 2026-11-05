@@ -1,0 +1,90 @@
+@page "/"
+@using AIAssistantSalesOperationsDashboard.Models
+@using AIAssistantSalesOperationsDashboard.Services
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Popups
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Notifications
+@inject IOrderDataService OrderDataService
+
+<div class="dashboard-container">
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="header-content">
+            <h1>📊 AI-Assisted Sales Operations Dashboard</h1>
+            <p class="subtitle">Interactive order management with real-time analytics</p>
+        </div>
+        <div class="header-actions">
+            <SfButton @onclick="ResetDataAsync" CssClass="e-info e-small">
+                🔄 Reset Data
+            </SfButton>
+            <SfButton @onclick="RefreshAsync" CssClass="e-success e-small">
+                🔃 Refresh
+            </SfButton>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <div class="dashboard-content">
+        <!-- Left Column: Summary Cards & Grid -->
+        <div class="column-left">
+            <!-- Summary Cards -->
+            <SummaryCards OrderSummary="@_orderSummary" />
+
+            <!-- Order Grid -->
+            <div class="grid-section">
+                <h2>Orders Management</h2>
+                <OrderGrid @ref="_orderGrid" Orders="@_orders" OnDataChanged="RefreshAsync" />
+            </div>
+        </div>
+
+        <!-- Middle Column: Chart -->
+        <div class="column-middle">
+            <OrderChart Orders="@_orders" />
+        </div>
+
+        <!-- Right Column: Activity Panel -->
+        <div class="column-right">
+            <ActivityPanel ActivityLogs="@_activityLogs" />
+        </div>
+    </div>
+
+    <!-- Bottom: Spreadsheet -->
+    <div class="spreadsheet-section">
+        <h2>📈 Reporting & Export</h2>
+        <OrderSpreadsheet Orders="@_orders" />
+    </div>
+
+    <!-- Data Note -->
+    <div class="data-note">
+        <strong>ℹ️ Note:</strong> Data is stored in-memory only. Refreshing the browser will restore original records. 
+        See production deployment section in README for database integration.
+    </div>
+</div>
+
+@code {
+    private List<OrderRecord> _orders = new();
+    private Dictionary<string, object> _orderSummary = new();
+    private List<ActivityLog> _activityLogs = new();
+    private OrderGrid? _orderGrid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshAsync();
+        OrderDataService.DataChanged += async (s, e) => await RefreshAsync();
+    }
+
+    private async Task RefreshAsync()
+    {
+        _orders = await OrderDataService.GetOrdersAsync();
+        _orderSummary = await OrderDataService.GetOrderSummaryAsync();
+        _activityLogs = await OrderDataService.GetActivityLogsAsync(20);
+        StateHasChanged();
+    }
+
+    private async Task ResetDataAsync()
+    {
+        await OrderDataService.ResetDataAsync();
+        await RefreshAsync();
+    }
+}

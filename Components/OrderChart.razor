@@ -1,0 +1,100 @@
+@using AIAssistantSalesOperationsDashboard.Models
+@using Syncfusion.Blazor.Charts
+
+<div class="chart-container">
+    <SfChart Title="Order Value by Customer" 
+             Theme="ChartTheme.Bootstrap5"
+             Width="100%"
+             Height="100%"
+             @ref="ChartRef">
+
+        <ChartArea>
+            <ChartAreaBorder Width="0" />
+        </ChartArea>
+
+        <ChartTooltipSettings Enable="true" />
+
+        <ChartLegendSettings Visible="false" />
+
+        <ChartSeriesCollection>
+            <ChartSeries DataSource="@ChartData" 
+                         XName="Customer" 
+                         YName="OrderValue"
+                         Type="ChartSeriesType.Column"
+                         Name="Order Value"
+                         CornerRadius="new ChartCornerRadius { BottomLeft = 10, BottomRight = 10 }">
+                <ChartSeriesMarker>
+                    <ChartDataLabel Visible="true" Format="C0" />
+                </ChartSeriesMarker>
+            </ChartSeries>
+        </ChartSeriesCollection>
+
+        <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category"
+                          MajorGridLines="new ChartMajorGridLines { Width = 0 }"
+                          LabelStyle="new ChartAxisLabelStyle { Angle = -45 }" />
+
+        <ChartPrimaryYAxis Title="Order Value ($)"
+                          RangePadding="ChartRangePadding.None"
+                          Maximum="@GetMaxValue()"
+                          Interval="@GetInterval()">
+            <ChartAxisMajorTickLines Width="0" />
+            <ChartAxisLineStyle Width="0" />
+        </ChartPrimaryYAxis>
+    </SfChart>
+</div>
+
+@code {
+    [Parameter]
+    public List<OrderRecord> Orders { get; set; } = new();
+
+    private SfChart<ChartData>? ChartRef;
+    private List<ChartData> ChartData = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await UpdateChartDataAsync();
+    }
+
+    private async Task UpdateChartDataAsync()
+    {
+        ChartData = Orders
+            .GroupBy(o => o.Customer)
+            .Select(g => new ChartData
+            {
+                Customer = g.Key,
+                OrderValue = g.Sum(o => o.OrderValue)
+            })
+            .OrderByDescending(c => c.OrderValue)
+            .ToList();
+
+        // Refresh chart if it exists
+        if (ChartRef != null)
+        {
+            await ChartRef.Refresh();
+        }
+
+        await Task.CompletedTask;
+    }
+
+    private double GetMaxValue()
+    {
+        if (ChartData.Count == 0)
+            return 100000;
+
+        var max = ChartData.Max(c => c.OrderValue);
+        return Math.Ceiling(max / 10000) * 10000;
+    }
+
+    private double GetInterval()
+    {
+        var max = GetMaxValue();
+        return Math.Max(10000, max / 5);
+    }
+
+    // Helper class for chart data
+    private class ChartData
+    {
+        public string Customer { get; set; } = string.Empty;
+        public decimal OrderValue { get; set; }
+    }
+}

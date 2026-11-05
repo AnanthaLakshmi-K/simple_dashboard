@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <OutputType>Library</OutputType>
+    <PublishTrimmed>true</PublishTrimmed>
+    <InvariantGlobalization>false</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Syncfusion Blazor NuGet Packages -->
+    <PackageReference Include="Syncfusion.Blazor.Grids" Version="25.1.34" />
+    <PackageReference Include="Syncfusion.Blazor.Charts" Version="25.1.34" />
+    <PackageReference Include="Syncfusion.Blazor.Spreadsheet" Version="25.1.34" />
+    <PackageReference Include="Syncfusion.Blazor.Calendars" Version="25.1.34" />
+    <PackageReference Include="Syncfusion.Blazor.DropDowns" Version="25.1.34" />
+    <PackageReference Include="Syncfusion.Blazor.Buttons" Version="25.1.34" />
+    <PackageReference Include="Syncfusion.Blazor.Inputs" Version="25.1.34" />
+    <PackageReference Include="Syncfusion.Blazor.Popups" Version="25.1.34" />
+    <PackageReference Include="Syncfusion.Blazor.Notifications" Version="25.1.34" />
+
+    <!-- Core Blazor -->
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.0" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>
